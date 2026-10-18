@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+set -x
 
 : "${ANDROID_NDK_HOME:?}"
 : "${ANDROID_DEPS_PREFIX:?}"

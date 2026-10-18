@@ -56,7 +56,16 @@ jobs:
           key: android-deps-${{ hashFiles('android/deps/build_deps.sh') }}
 
       - name: Build dependencies
-        run: ./android/deps/build_deps.sh
+        id: deps
+        run: |
+          set -o pipefail
+          ./android/deps/build_deps.sh 2>&1 | tee deps.log
+
+      - name: Report dependency failure
+        if: failure() && steps.deps.outcome == 'failure'
+        run: |
+          MSG=$(tail -c 3500 deps.log | sed -e 's/%/%25/g' -e ':a;N;$!ba;s/\n/%0A/g' -e 's/\r//g')
+          echo "::error title=deps failed::$MSG"
 
       - uses: gradle/actions/setup-gradle@v3
         with:
