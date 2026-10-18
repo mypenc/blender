@@ -51,8 +51,8 @@ done_flag(){ [ -f "$OUT/.done-$1" ]; }
 mark(){ touch "$OUT/.done-$1"; }
 
 if ! done_flag zlib; then
-  fetch zlib https://github.com/madler/zlib/archive/refs/tags/v1.3.tar.gz
-  cm zlib
+  fetch zlib https://github.com/madler/zlib/archive/refs/tags/v1.3.1.tar.gz
+  cm zlib -DZLIB_BUILD_SHARED=OFF -DZLIB_BUILD_TESTING=OFF -DZLIB_BUILD_STATIC=ON
   mark zlib
 fi
 
