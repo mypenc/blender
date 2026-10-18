@@ -2,7 +2,7 @@
 
 #include <android/configuration.h>
 
-#include "GHOST_ContextEGL.hh"
+#include "GHOST_ContextOSMesa.hh"
 #include "GHOST_WindowAndroid.hh"
 
 GHOST_WindowAndroid::GHOST_WindowAndroid(GHOST_SystemAndroid *system,
@@ -35,16 +35,7 @@ GHOST_Context *GHOST_WindowAndroid::newDrawingContext(GHOST_TDrawingContextType 
   if (type != GHOST_kDrawingContextTypeOpenGL) {
     return nullptr;
   }
-  GHOST_Context *ctx = new GHOST_ContextEGL(m_system,
-                                            m_wantStereoVisual,
-                                            EGLNativeWindowType(g_ghostAndroidApp->window),
-                                            EGLNativeDisplayType(EGL_DEFAULT_DISPLAY),
-                                            0,
-                                            3,
-                                            2,
-                                            GHOST_OPENGL_EGL_CONTEXT_FLAGS,
-                                            GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-                                            EGL_OPENGL_ES_API);
+  GHOST_Context *ctx = new GHOST_ContextOSMesa(m_wantStereoVisual, true);
   if (ctx->initializeDrawingContext()) {
     return ctx;
   }
@@ -99,18 +90,6 @@ uint16_t GHOST_WindowAndroid::getDPIHint()
   return uint16_t(d);
 }
 
-void GHOST_WindowAndroid::surfaceLost()
-{
-  GHOST_ContextEGL *c = dynamic_cast<GHOST_ContextEGL *>(m_context);
-  if (c) {
-    c->releaseSurface();
-  }
-}
+void GHOST_WindowAndroid::surfaceLost() {}
 
-void GHOST_WindowAndroid::surfaceRestored()
-{
-  GHOST_ContextEGL *c = dynamic_cast<GHOST_ContextEGL *>(m_context);
-  if (c && g_ghostAndroidApp->window) {
-    c->restoreSurface(EGLNativeWindowType(g_ghostAndroidApp->window));
-  }
-}
+void GHOST_WindowAndroid::surfaceRestored() {}

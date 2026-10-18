@@ -134,17 +134,28 @@ if(WITH_HEADLESS)
 elseif(WITH_GHOST_ANDROID)
   list(APPEND SRC
     intern/GHOST_AndroidMain.cc
+    intern/GHOST_ContextOSMesa.cc
     intern/GHOST_SystemAndroid.cc
     intern/GHOST_WindowAndroid.cc
 
+    intern/GHOST_ContextOSMesa.hh
     intern/GHOST_SystemAndroid.hh
     intern/GHOST_WindowAndroid.hh
   )
   add_definitions(-DWITH_GHOST_ANDROID)
+  find_path(OSMESA_INCLUDE_DIR GL/osmesa.h PATHS ${LIBDIR}/mesa/include NO_DEFAULT_PATH)
+  find_library(OSMESA_LIBRARY OSMesa PATHS ${LIBDIR}/mesa/lib NO_DEFAULT_PATH)
+  if(NOT OSMESA_INCLUDE_DIR OR NOT OSMESA_LIBRARY)
+    message(FATAL_ERROR "OSMesa not found in ${LIBDIR}/mesa")
+  endif()
+  list(APPEND INC_SYS
+    ${OSMESA_INCLUDE_DIR}
+  )
   list(APPEND LIB
     android
     log
     EGL
+    ${OSMESA_LIBRARY}
   )
 elseif(WITH_GHOST_SDL)
   list(APPEND SRC

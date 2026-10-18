@@ -4,6 +4,8 @@ plugins {
 
 def blenderRoot = file("../..")
 def genAssets = layout.buildDirectory.dir("generated/blenderAssets")
+def genLibs = layout.buildDirectory.dir("generated/blenderLibs")
+def depsPrefix = System.getenv('ANDROID_DEPS_PREFIX') ?: ''
 
 android {
     namespace 'org.blender.android'
@@ -39,6 +41,7 @@ android {
     sourceSets {
         main {
             assets.srcDirs += genAssets.get().asFile
+            jniLibs.srcDirs += genLibs.get().asFile
         }
     }
 
@@ -72,6 +75,26 @@ tasks.register('prepareBlenderAssets') {
             from new File(blenderRoot, "release/datafiles")
             into new File(dst, "datafiles")
             exclude 'locale/**', '**/*.svg', '**/*.blend1'
+        }
+        def pyLib = new File(depsPrefix, "python/lib/python3.10")
+        if (pyLib.exists()) {
+            copy {
+                from pyLib
+                into new File(dst, "python/lib/python3.10")
+                exclude '**/__pycache__/**', 'test/**', 'idlelib/**', 'tkinter/**', 'turtledemo/**', 'lib2to3/**', '**/tests/**', 'config-*/**'
+            }
+        }
+        def libOut = new File(genLibs.get().asFile, "arm64-v8a")
+        libOut.mkdirs()
+        copy {
+            from new File(depsPrefix, "mesa/lib")
+            include 'libOSMesa*.so*', 'libglapi*.so*'
+            into libOut
+        }
+        copy {
+            from new File(depsPrefix, "python/lib")
+            include 'libpython3.10*.so*'
+            into libOut
         }
         def base = new File(out, "blender")
         def lines = []

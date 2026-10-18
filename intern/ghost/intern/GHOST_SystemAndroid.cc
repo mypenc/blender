@@ -7,7 +7,7 @@
 #include <ctime>
 #include <stdexcept>
 
-#include "GHOST_ContextEGL.hh"
+#include "GHOST_ContextOSMesa.hh"
 #include "GHOST_EventButton.hh"
 #include "GHOST_EventCursor.hh"
 #include "GHOST_EventKey.hh"
@@ -117,16 +117,7 @@ GHOST_IWindow *GHOST_SystemAndroid::createWindow(const char *title,
 
 GHOST_IContext *GHOST_SystemAndroid::createOffscreenContext(GHOST_GLSettings)
 {
-  GHOST_Context *ctx = new GHOST_ContextEGL(this,
-                                            false,
-                                            EGLNativeWindowType(nullptr),
-                                            EGLNativeDisplayType(EGL_DEFAULT_DISPLAY),
-                                            0,
-                                            3,
-                                            2,
-                                            GHOST_OPENGL_EGL_CONTEXT_FLAGS,
-                                            GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-                                            EGL_OPENGL_ES_API);
+  GHOST_Context *ctx = new GHOST_ContextOSMesa(false, false);
   if (ctx->initializeDrawingContext()) {
     return ctx;
   }

@@ -120,6 +120,7 @@ fi
 
 if ! done_flag epoxy; then
   fetch epoxy https://github.com/anholt/libepoxy/archive/refs/tags/1.5.10.tar.gz
+  sed -i 's/libGL\.so\.1/libOSMesa.so/g; s/libGLESv2\.so\.2/libOSMesa.so/g' epoxy/src/dispatch_common.c epoxy/src/dispatch_common.h
   cat > epoxy-cross.txt <<CROSS
 [binaries]
 c = '$CC'
@@ -207,4 +208,53 @@ if ! done_flag openimageio; then
     -DPugixml_ROOT="$OUT/pugixml" -Dfmt_ROOT="$OUT/fmt" -DRobinmap_ROOT="$OUT/robin-map" \
     -DCMAKE_PREFIX_PATH="$OUT/zlib;$OUT/png;$OUT/jpeg;$OUT/boost;$OUT/pugixml;$OUT/fmt;$OUT/robin-map"
   mark openimageio
+fi
+
+if ! done_flag expat; then
+  fetch expat https://github.com/libexpat/libexpat/archive/refs/tags/R_2_5_0.tar.gz
+  cmake -S expat/expat -B expat/build-android -G Ninja \
+    -DCMAKE_TOOLCHAIN_FILE="$TC" -DANDROID_ABI=$ABI -DANDROID_PLATFORM=android-$API \
+    -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+    -DEXPAT_BUILD_TOOLS=OFF -DEXPAT_BUILD_EXAMPLES=OFF -DEXPAT_BUILD_TESTS=OFF \
+    -DEXPAT_BUILD_DOCS=OFF -DEXPAT_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX="$OUT/expat"
+  cmake --build expat/build-android -j"$JOBS"
+  cmake --install expat/build-android
+  mark expat
+fi
+
+if ! done_flag mesa; then
+  MESA_VER=${MESA_VER:-23.3.6}
+  fetch mesa "https://archive.mesa3d.org/mesa-$MESA_VER.tar.xz"
+  sed -i 's/"libvulkan\.so\.1"/"libvulkan.so"/g' mesa/src/gallium/drivers/zink/zink_screen.c
+  cat > mesa-cross.txt <<CROSS
+[binaries]
+c = '$CC'
+cpp = '$CXX'
+ar = '$AR'
+strip = '$STRIP'
+pkg-config = 'pkg-config'
+[built-in options]
+c_args = ['-fPIC', '-I$OUT/zlib/include', '-I$OUT/expat/include', '-I$OUT/zstd/include']
+cpp_args = ['-fPIC', '-I$OUT/zlib/include', '-I$OUT/expat/include', '-I$OUT/zstd/include']
+c_link_args = ['-L$OUT/zlib/lib', '-L$OUT/expat/lib', '-L$OUT/zstd/lib']
+cpp_link_args = ['-L$OUT/zlib/lib', '-L$OUT/expat/lib', '-L$OUT/zstd/lib', '-static-libstdc++']
+[properties]
+needs_exe_wrapper = true
+[host_machine]
+system = 'android'
+cpu_family = 'aarch64'
+cpu = 'aarch64'
+endian = 'little'
+CROSS
+  export PKG_CONFIG_PATH="$OUT/zlib/lib/pkgconfig:$OUT/expat/lib/pkgconfig:$OUT/zstd/lib/pkgconfig"
+  meson setup mesa/build-android mesa --cross-file mesa-cross.txt \
+    --prefix "$OUT/mesa" --buildtype release \
+    -Dplatforms= -Dgallium-drivers=swrast,zink -Dvulkan-drivers= \
+    -Dllvm=disabled -Dosmesa=true -Dglx=disabled -Degl=disabled -Dgbm=disabled \
+    -Dgles1=disabled -Dgles2=disabled -Dopengl=true -Dshared-glapi=enabled \
+    -Dlibunwind=disabled -Dlmsensors=disabled -Dbuild-tests=false -Dzstd=enabled \
+    -Dvalgrind=disabled -Dshader-cache=disabled -Dgallium-nine=false -Dgallium-xa=disabled \
+    -Dgallium-vdpau=disabled -Dgallium-va=disabled -Dvideo-codecs= -Dandroid-libbacktrace=disabled
+  ninja -C mesa/build-android -j"$JOBS" install
+  mark mesa
 fi

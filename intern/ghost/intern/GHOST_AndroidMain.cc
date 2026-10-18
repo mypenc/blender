@@ -110,6 +110,12 @@ void android_main(struct android_app *app)
   setenv("TMPDIR", (base + "/tmp").c_str(), 1);
   setenv("BLENDER_SYSTEM_RESOURCES", root.c_str(), 1);
   setenv("BLENDER_USER_RESOURCES", (base + "/home").c_str(), 1);
+  setenv("GALLIUM_DRIVER", "zink", 1);
+  setenv("MESA_LOADER_DRIVER_OVERRIDE", "zink", 1);
+  setenv("MESA_GL_VERSION_OVERRIDE", "4.3", 1);
+  setenv("MESA_GLSL_VERSION_OVERRIDE", "430", 1);
+  setenv("MESA_NO_ERROR", "0", 1);
+  setenv("ZINK_DESCRIPTORS", "lazy", 1);
   const char *argv[] = {"blender", nullptr};
   main(1, argv);
   ANativeActivity_finish(app->activity);
