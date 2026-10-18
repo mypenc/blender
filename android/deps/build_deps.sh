@@ -191,7 +191,7 @@ SITE
   CFLAGS="-fPIC -I$OUT/zlib/include" LDFLAGS="-L$OUT/zlib/lib" \
   ../configure --host=$TRIPLE --build="$(../config.guess)" \
     --prefix="$OUT/python" --with-build-python="$SRC/python-host/bin/python3.10" \
-    --enable-shared --without-ensurepip --disable-ipv6 --with-openssl=no
+    --enable-shared --without-ensurepip --disable-ipv6
   make -j"$JOBS"
   make install
   popd
