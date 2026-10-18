@@ -39,7 +39,8 @@ cm(){
     -DANDROID_ABI=$ABI -DANDROID_PLATFORM=android-$API \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-    -DCMAKE_PREFIX_PATH="$OUT/zlib;$OUT/png;$OUT/brotli;$OUT/boost;$OUT/tbb" \
+    -DCMAKE_PREFIX_PATH="$(ls -d "$OUT"/*/ | tr '\n' ';')" \
+    -DCMAKE_FIND_ROOT_PATH="$(ls -d "$OUT"/*/ | tr '\n' ';')" \
     -DCMAKE_INSTALL_PREFIX="$OUT/$name" \
     -DBUILD_SHARED_LIBS=OFF \
     "$@"
@@ -90,7 +91,8 @@ if ! done_flag freetype; then
   fetch freetype https://github.com/freetype/freetype/archive/refs/tags/VER-2-13-2.tar.gz
   cm freetype -DFT_REQUIRE_ZLIB=ON -DFT_REQUIRE_PNG=ON -DFT_REQUIRE_BROTLI=ON \
     -DFT_DISABLE_BZIP2=ON -DFT_DISABLE_HARFBUZZ=ON \
-    -DZLIB_ROOT="$OUT/zlib" -DPNG_ROOT="$OUT/png" -DBROTLIDEC_INCLUDE_DIRS="$OUT/brotli/include" \
+    -DZLIB_LIBRARY="$OUT/zlib/lib/libz.a" -DZLIB_INCLUDE_DIR="$OUT/zlib/include" \
+    -DPNG_LIBRARY="$OUT/png/lib/libpng16.a" -DPNG_PNG_INCLUDE_DIR="$OUT/png/include" -DBROTLIDEC_INCLUDE_DIRS="$OUT/brotli/include" \
     -DBROTLIDEC_LIBRARIES="$OUT/brotli/lib/libbrotlidec.a;$OUT/brotli/lib/libbrotlicommon.a"
   mark freetype
 fi
