@@ -199,6 +199,14 @@ SITE
   mark python
 fi
 
+if ! done_flag tiff; then
+  fetch tiff https://download.osgeo.org/libtiff/tiff-4.5.1.tar.gz
+  cm tiff -Dtiff-tools=OFF -Dtiff-tests=OFF -Dtiff-contrib=OFF -Dtiff-docs=OFF \
+    -Dlzma=OFF -Dzstd=OFF -Djbig=OFF -Dwebp=OFF -Dlerc=OFF -Dold-jpeg=OFF -Djpeg=OFF \
+    -Dpixarlog=OFF -Dcxx=OFF
+  mark tiff
+fi
+
 if ! done_flag openimageio; then
   fetch openimageio https://github.com/AcademySoftwareFoundation/OpenImageIO/archive/refs/tags/v2.4.13.0.tar.gz
   cm openimageio -DBUILD_TESTING=OFF -DOIIO_BUILD_TESTS=OFF -DOIIO_BUILD_TOOLS=OFF \
@@ -207,9 +215,9 @@ if ! done_flag openimageio; then
     -DUSE_PTEX=OFF -DUSE_WEBP=OFF -DUSE_TBB=OFF -DUSE_DCMTK=OFF -DUSE_NUKE=OFF -DUSE_BZIP2=OFF \
     -DUSE_JPEGTURBO=ON -DLINKSTATIC=ON -DBoost_USE_STATIC_LIBS=ON \
     -DBOOST_ROOT="$OUT/boost" -DBoost_NO_SYSTEM_PATHS=ON \
-    -DJPEG_ROOT="$OUT/jpeg" -DPNG_ROOT="$OUT/png" -DZLIB_ROOT="$OUT/zlib" \
+    -DTIFF_ROOT="$OUT/tiff" -DJPEG_ROOT="$OUT/jpeg" -DPNG_ROOT="$OUT/png" -DZLIB_ROOT="$OUT/zlib" \
     -DPugixml_ROOT="$OUT/pugixml" -Dfmt_ROOT="$OUT/fmt" -DRobinmap_ROOT="$OUT/robin-map" \
-    -DCMAKE_PREFIX_PATH="$OUT/zlib;$OUT/png;$OUT/jpeg;$OUT/boost;$OUT/pugixml;$OUT/fmt;$OUT/robin-map"
+    -DCMAKE_PREFIX_PATH="$OUT/zlib;$OUT/png;$OUT/jpeg;$OUT/boost;$OUT/pugixml;$OUT/fmt;$OUT/robin-map;$OUT/tiff"
   mark openimageio
 fi
 
