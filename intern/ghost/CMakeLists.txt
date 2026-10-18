@@ -131,6 +131,21 @@ list(APPEND SRC
 
 if(WITH_HEADLESS)
   add_definitions(-DWITH_HEADLESS)
+elseif(WITH_GHOST_ANDROID)
+  list(APPEND SRC
+    intern/GHOST_AndroidMain.cc
+    intern/GHOST_SystemAndroid.cc
+    intern/GHOST_WindowAndroid.cc
+
+    intern/GHOST_SystemAndroid.hh
+    intern/GHOST_WindowAndroid.hh
+  )
+  add_definitions(-DWITH_GHOST_ANDROID)
+  list(APPEND LIB
+    android
+    log
+    EGL
+  )
 elseif(WITH_GHOST_SDL)
   list(APPEND SRC
     intern/GHOST_ContextSDL.cc

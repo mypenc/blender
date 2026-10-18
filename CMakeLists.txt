@@ -262,7 +262,13 @@ mark_as_advanced(WITH_GHOST_DEBUG)
 option(WITH_GHOST_SDL    "Enable building Blender against SDL for windowing rather than the native APIs" OFF)
 mark_as_advanced(WITH_GHOST_SDL)
 
-if(UNIX AND NOT (APPLE OR HAIKU))
+if(ANDROID)
+  set(WITH_GHOST_ANDROID ON)
+else()
+  set(WITH_GHOST_ANDROID OFF)
+endif()
+
+if(UNIX AND NOT (APPLE OR HAIKU OR ANDROID))
   option(WITH_GHOST_X11 "Enable building Blender against X11 for windowing" ON)
   mark_as_advanced(WITH_GHOST_X11)
 
@@ -932,7 +938,7 @@ if(WITH_INSTALL_PORTABLE)
   set(CMAKE_SKIP_BUILD_RPATH TRUE)
 endif()
 
-if(WITH_GHOST_SDL OR WITH_HEADLESS)
+if(WITH_GHOST_SDL OR WITH_HEADLESS OR WITH_GHOST_ANDROID)
   message(STATUS "Disabling Ghost Wayland, X11, Input IME, and OpenXR")
   set(WITH_GHOST_WAYLAND OFF)
   set(WITH_GHOST_X11     OFF)
@@ -1092,7 +1098,9 @@ endif()
 # - WIN32
 # - APPLE
 
-if(UNIX AND NOT APPLE)
+if(ANDROID)
+  include(platform_android)
+elseif(UNIX AND NOT APPLE)
   include(platform_unix)
 elseif(WIN32)
   include(platform_win32)

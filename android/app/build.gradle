@@ -1,0 +1,85 @@
+plugins {
+    id 'com.android.application'
+}
+
+def blenderRoot = file("../..")
+def genAssets = layout.buildDirectory.dir("generated/blenderAssets")
+
+android {
+    namespace 'org.blender.android'
+    compileSdk 34
+    ndkVersion '26.1.10909125'
+
+    defaultConfig {
+        applicationId 'org.blender.android'
+        minSdk 28
+        targetSdk 34
+        versionCode 1
+        versionName '3.6'
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_shared',
+                          '-DANDROID_PLATFORM=android-28',
+                          "-DANDROID_DEPS_PREFIX=${System.getenv('ANDROID_DEPS_PREFIX') ?: ''}"
+                targets 'blender'
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "${blenderRoot}/CMakeLists.txt"
+            version '3.22.1'
+        }
+    }
+
+    sourceSets {
+        main {
+            assets.srcDirs += genAssets.get().asFile
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
+}
+
+tasks.register('prepareBlenderAssets') {
+    def out = genAssets.get().asFile
+    inputs.dir(new File(blenderRoot, "release/scripts"))
+    inputs.dir(new File(blenderRoot, "release/datafiles"))
+    outputs.dir(out)
+    doLast {
+        def dst = new File(out, "blender/3.6")
+        delete(out)
+        copy {
+            from new File(blenderRoot, "release/scripts")
+            into new File(dst, "scripts")
+            exclude '**/__pycache__/**'
+        }
+        copy {
+            from new File(blenderRoot, "release/datafiles")
+            into new File(dst, "datafiles")
+            exclude 'locale/**', '**/*.svg', '**/*.blend1'
+        }
+        def base = new File(out, "blender")
+        def lines = []
+        base.eachFileRecurse(groovy.io.FileType.FILES) { f ->
+            lines << base.toPath().relativize(f.toPath()).toString()
+        }
+        new File(out, "blender_files.txt").text = lines.sort().join("\n") + "\n"
+    }
+}
+
+preBuild.dependsOn prepareBlenderAssets

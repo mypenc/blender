@@ -14,7 +14,9 @@
 #include "GHOST_ISystem.hh"
 #include "GHOST_SystemHeadless.hh"
 
-#if defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND)
+#if defined(WITH_GHOST_ANDROID)
+#  include "GHOST_SystemAndroid.hh"
+#elif defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND)
 #  include "GHOST_SystemWayland.hh"
 #  include "GHOST_SystemX11.hh"
 #elif defined(WITH_GHOST_X11)
@@ -56,6 +58,15 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool b
 
 #if defined(WITH_HEADLESS)
     /* Pass. */
+#elif defined(WITH_GHOST_ANDROID)
+    backends_attempted[backends_attempted_num++] = "ANDROID";
+    try {
+      m_system = new GHOST_SystemAndroid();
+    }
+    catch (const std::runtime_error &) {
+      delete m_system;
+      m_system = nullptr;
+    }
 #elif defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND)
     /* Special case, try Wayland, fall back to X11. */
     if (has_wayland_libraries) {
