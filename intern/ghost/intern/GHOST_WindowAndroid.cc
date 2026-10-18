@@ -98,3 +98,19 @@ uint16_t GHOST_WindowAndroid::getDPIHint()
   }
   return uint16_t(d);
 }
+
+void GHOST_WindowAndroid::surfaceLost()
+{
+  GHOST_ContextEGL *c = dynamic_cast<GHOST_ContextEGL *>(m_context);
+  if (c) {
+    c->releaseSurface();
+  }
+}
+
+void GHOST_WindowAndroid::surfaceRestored()
+{
+  GHOST_ContextEGL *c = dynamic_cast<GHOST_ContextEGL *>(m_context);
+  if (c && g_ghostAndroidApp->window) {
+    c->restoreSurface(EGLNativeWindowType(g_ghostAndroidApp->window));
+  }
+}

@@ -239,9 +239,17 @@ void GHOST_SystemAndroid::handleCmd(int32_t cmd)
   switch (cmd) {
     case APP_CMD_INIT_WINDOW:
       m_winReady = true;
+      if (w) {
+        w->surfaceRestored();
+        w->invalidate();
+        pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, w));
+      }
       break;
     case APP_CMD_TERM_WINDOW:
       m_winReady = false;
+      if (w) {
+        w->surfaceLost();
+      }
       break;
     case APP_CMD_WINDOW_RESIZED:
     case APP_CMD_CONFIG_CHANGED:
@@ -629,6 +637,13 @@ int32_t GHOST_SystemAndroid::handleInput(AInputEvent *ev)
 bool GHOST_SystemAndroid::processEvents(bool waitForEvent)
 {
   bool any = false;
+  while (!m_winReady && !g_ghostAndroidApp->destroyRequested) {
+    int ev;
+    struct android_poll_source *src;
+    if (ALooper_pollAll(-1, nullptr, &ev, reinterpret_cast<void **>(&src)) >= 0 && src) {
+      src->process(g_ghostAndroidApp, src);
+    }
+  }
   do {
     GHOST_TimerManager *tm = getTimerManager();
     int timeout = 0;

@@ -34,6 +34,8 @@ class GHOST_WindowAndroid : public GHOST_Window {
     return GHOST_kSuccess;
   }
   uint16_t getDPIHint() override;
+  void surfaceLost();
+  void surfaceRestored();
 
  protected:
   GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type) override;

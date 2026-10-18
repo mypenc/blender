@@ -96,6 +96,11 @@ class GHOST_ContextEGL : public GHOST_Context {
 
   EGLContext getContext() const;
 
+#ifdef __ANDROID__
+  void releaseSurface();
+  bool restoreSurface(EGLNativeWindowType win);
+#endif
+
  private:
   bool bindAPI(EGLenum api);
 

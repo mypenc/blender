@@ -1,0 +1,69 @@
+name: Android
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 350
+    env:
+      ANDROID_DEPS_PREFIX: ${{ github.workspace }}/android-deps
+      ANDROID_DEPS_SRC: ${{ github.workspace }}/android-deps-src
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install SDK packages
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" "ndk;26.1.10909125" "cmake;3.22.1"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >> "$GITHUB_ENV"
+
+      - name: Host tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build meson python3-pip autoconf automake libtool pkg-config
+          pip install --user mako
+
+      - name: Cache dependencies
+        id: deps-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.ANDROID_DEPS_PREFIX }}
+            ${{ env.ANDROID_DEPS_SRC }}
+          key: android-deps-${{ hashFiles('android/deps/build_deps.sh') }}
+
+      - name: Build dependencies
+        run: ./android/deps/build_deps.sh
+
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.5
+
+      - name: Build APK
+        run: gradle -p android assembleDebug --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blender-android-arm64
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

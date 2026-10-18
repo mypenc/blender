@@ -612,3 +612,26 @@ GHOST_TSuccess GHOST_ContextEGL::releaseNativeHandles()
 
   return GHOST_kSuccess;
 }
+
+#ifdef __ANDROID__
+void GHOST_ContextEGL::releaseSurface()
+{
+  if (m_surface == EGL_NO_SURFACE) {
+    return;
+  }
+  ::eglMakeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+  ::eglDestroySurface(m_display, m_surface);
+  m_surface = EGL_NO_SURFACE;
+}
+
+bool GHOST_ContextEGL::restoreSurface(EGLNativeWindowType win)
+{
+  releaseSurface();
+  m_nativeWindow = win;
+  m_surface = ::eglCreateWindowSurface(m_display, m_config, m_nativeWindow, nullptr);
+  if (m_surface == EGL_NO_SURFACE) {
+    return false;
+  }
+  return ::eglMakeCurrent(m_display, m_surface, m_surface, m_context) == EGL_TRUE;
+}
+#endif
